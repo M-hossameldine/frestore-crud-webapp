@@ -1,0 +1,57 @@
+* {
+  box-sizing: border-box;
+  margin: 0px;
+}
+
+.container {
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+
+  #notification {
+    height: 20px;
+    font-size: 20px;
+    font-weight: 500;
+  }
+  form {
+    margin-inline: auto;
+  }
+
+  .list li {
+    margin-bottom: 0.5rem;
+  }
+
+  .list__item-content {
+    display: grid;
+    grid-template-columns: 250px 60px 60px;
+    column-gap: 0.5rem;
+  }
+
+  .list__item-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  button {
+    cursor: pointer;
+  }
+  .done {
+    border-radius: 3px;
+    border: none;
+  }
+  .done.not-checked {
+    color: rgb(69, 117, 102);
+    background-color: rgba(127, 255, 212, 0.8);
+    border-radius: 3px;
+    border: none;
+  }
+  .done.checked {
+    color: rgb(100, 132, 196);
+    background-color: rgba(106, 142, 213, 0.3);
+    border-radius: 3px;
+    border: none;
+  }
+}

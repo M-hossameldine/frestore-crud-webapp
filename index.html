@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CRUD Firestore</title>
 
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -23,18 +25,20 @@
 
         // Initialize your firebase app and firestore
         firebase.initializeApp(firebaseConfig);
-        var db = firebase.firestore();
+        const db = firebase.firestore();
 
         // list todo tasks
         db.collection("todos").onSnapshot((querySnapshot) => {
           querySnapshot.docChanges().forEach((change) => {
-            var todo = change.doc.data().todo;
-            var done = change.doc.data().done;
+            const todo = change.doc.data().todo;
+            const done = change.doc.data().done;
 
             const todo_html =
-              (done ? `<del> ${todo} </del>` : `<strong> ${todo} </strong>`)
-              + ` <button doc-id='${change.doc.id}' class='done'> Done </button>`
-              + ` <button doc-id='${change.doc.id}' class='delete'> Delete </button>`;
+              ` <div class='list__item-content'> `
+              + (done ? `<del class='list__item-text'> ${todo} </del>` : `<strong class='list__item-text'> ${todo} </strong>`)
+              + ` <button doc-id='${change.doc.id}' class='done ${done ? 'checked': 'not-checked'}'> ${ done ? 'Redo' :'Done' } </button>`
+              + ` <button doc-id='${change.doc.id}' class='delete'> Delete </button>`
+              + ` </div>`;
 
             if(change.type === "added") {
               $("#todos").append(`<li data-key='${change.doc.id}'> ${todo_html} </li>`);
@@ -45,6 +49,20 @@
             }
           });
         });
+
+        let timer;
+
+        const notificationHandler = (message) => {
+          $("#notification").text(message);
+
+          if(timer) {
+            clearTimeout(timer);
+          }
+
+          timer = setTimeout(() => {
+            $("#notification").text("");
+          }, 5000);
+        }
 
         // Add new task
         $(".new-task-form").submit(function(e){
@@ -57,7 +75,7 @@
             done: false
           })
           .then((docRef) => {
-              console.log("Document written with ID: ", docRef.id);
+              notificationHandler("Task added successfully!");
           })
           .catch((error) => {
               console.error("Error adding document: ", error);
@@ -66,13 +84,14 @@
         });
 
         $(document).delegate('.done','click',function(){
-          var doc_id = $(this).attr('doc-id');
+          const doc_id = $(this).attr('doc-id');
+          const isDone = $(this).hasClass('checked')
 
           db.collection("todos").doc(doc_id).update({
-              done: true,
+              done: !isDone,
           })
           .then(() => {
-              console.log("Document successfully written!");
+              notificationHandler("Task updated successfully!");
           })
           .catch((error) => {
               console.error("Error writing document: ", error);
@@ -80,10 +99,10 @@
         });
 
         $(document).delegate('.delete','click',function(){
-          var doc_id = $(this).attr('doc-id');
+          const doc_id = $(this).attr('doc-id');
 
           db.collection("todos").doc(doc_id).delete().then(() => {
-              console.log("Document successfully deleted!");
+              notificationHandler("Task deleted successfully!");
           }).catch((error) => {
               console.error("Error removing document: ", error);
           });
@@ -92,16 +111,20 @@
     </script>
   </head>
   <body>
-    <form class="new-task-form">
-      <input
-        placeholder="Enter Task Name Here..."
-        required
-        class="new-task"
-        type="text"
-      />
-      <button type="submit">Create Task</button>
-    </form>
+    <div class="container">
+      <p id="notification"></p>
 
-    <ol id="todos"></ol>
+      <form class="new-task-form">
+        <input
+          placeholder="Enter Task Name Here..."
+          required
+          class="new-task"
+          type="text"
+        />
+        <button type="submit">Create Task</button>
+      </form>
+
+      <ol id="todos" class="list"></ol>
+    </div>
   </body>
 </html>
