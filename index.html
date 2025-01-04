@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRUD Firestore</title>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+      $(document).ready(function(){
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyBVqWSMYYsqwSi_vG6pBYWdi_m_coesVFs",
+          authDomain: "firestore-crud---todo-wepapp.firebaseapp.com",
+          projectId: "firestore-crud---todo-wepapp",
+          storageBucket: "firestore-crud---todo-wepapp.firebasestorage.app",
+          messagingSenderId: "968303701052",
+          appId: "1:968303701052:web:5a2ae8d56da858620e6739"
+        };
+
+        // Initialize your firebase app and firestore
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
+
+        // list todo tasks
+        db.collection("todos").onSnapshot((querySnapshot) => {
+          querySnapshot.docChanges().forEach((change) => {
+            var todo = change.doc.data().todo;
+            var done = change.doc.data().done;
+
+            const todo_html =
+              (done ? `<del> ${todo} </del>` : `<strong> ${todo} </strong>`)
+              + ` <button doc-id='${change.doc.id}' class='done'> Done </button>`
+              + ` <button doc-id='${change.doc.id}' class='delete'> Delete </button>`;
+
+            if(change.type === "added") {
+              $("#todos").append(`<li data-key='${change.doc.id}'> ${todo_html} </li>`);
+            } else if ( change.type === "modified") {
+              $("#todos").children(`li[data-key='${change.doc.id}']`).html(todo_html);
+            } else if (change.type === "removed") {
+              $("#todos").children(`li[data-key='${change.doc.id}']`).remove();
+            }
+          });
+        });
+
+        // Add new task
+        $(".new-task-form").submit(function(e){
+          e.preventDefault();
+
+          const new_task = $(".new-task").val();
+
+          db.collection("todos").add({
+            todo: new_task,
+            done: false
+          })
+          .then((docRef) => {
+              console.log("Document written with ID: ", docRef.id);
+          })
+          .catch((error) => {
+              console.error("Error adding document: ", error);
+          });
+          $(".new-task").val("");
+        });
+
+        $(document).delegate('.done','click',function(){
+          var doc_id = $(this).attr('doc-id');
+
+          db.collection("todos").doc(doc_id).update({
+              done: true,
+          })
+          .then(() => {
+              console.log("Document successfully written!");
+          })
+          .catch((error) => {
+              console.error("Error writing document: ", error);
+          });
+        });
+
+        $(document).delegate('.delete','click',function(){
+          var doc_id = $(this).attr('doc-id');
+
+          db.collection("todos").doc(doc_id).delete().then(() => {
+              console.log("Document successfully deleted!");
+          }).catch((error) => {
+              console.error("Error removing document: ", error);
+          });
+        });
+      })
+    </script>
+  </head>
+  <body>
+    <form class="new-task-form">
+      <input
+        placeholder="Enter Task Name Here..."
+        required
+        class="new-task"
+        type="text"
+      />
+      <button type="submit">Create Task</button>
+    </form>
+
+    <ol id="todos"></ol>
+  </body>
+</html>
